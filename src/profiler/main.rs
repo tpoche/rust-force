@@ -4,7 +4,15 @@ use std::io::Reader;
 use std::path::Path;
 
 fn main() {
-	let filename = ~"/Users/tpoche/Workspaces/Ruby/ProfileParser/profiles/Accounting.profile";
+	let args = std::os::args();
+	if args.len() != 2 {
+		/// file must be specified in args
+		/// ie ~/Workspaces/Ruby/ProfileParser/profiles/Accounting.profile
+		println!("Usage: {} <file>", args[0]);
+		return;
+	}
+	
+	let filename: ~str = args[1].clone();	
 	let contents: ~str = match read_file(filename) {
 		Some(c) => c,
 		None => ~"Error reading file contents"
