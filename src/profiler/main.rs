@@ -23,10 +23,10 @@ impl FieldPermission {
 						~"field" => { fp.set_field(get_element_value(e)); },
 						~"readable" => { fp.set_readable(get_element_value(e)); },
 						~"editable" => { fp.set_editable(get_element_value(e));	},
-						_ => println!("Skipping unknown element name"),
+						_ => warn!("Encountered unknown element name"),
 					}
 				}, 
-				_ => println!("Skipping node")
+				_ => (),
 			}
 		}
 		println!("FieldPerm parsing complete: {:?}", fp);
@@ -37,18 +37,18 @@ impl FieldPermission {
 		self.field = f
 	}
 
-	pub fn set_readable(&mut self, r: ~str) -> bool {
-		match r {
-			 ~"true" => self.readable = true,
-			 _ => self.readable = false
+	pub fn set_readable(&mut self, rd: ~str) -> bool {
+		match from_str::<bool>(rd) {
+			Some(b) => self.readable = b,
+			None => self.readable = false
 		} 
 		self.readable
 	}
 
-	pub fn set_editable(&mut self, e: ~str) -> bool {
-		match e {
-			~"true" => self.editable = true,
-			_ => self.editable = false
+	pub fn set_editable(&mut self, ed: ~str) -> bool {
+		match from_str::<bool>(ed) {
+			Some(b) => self.editable = b,
+			None => self.editable = false
 		}
 		self.editable
 	}
@@ -93,7 +93,7 @@ impl ObjectPermission {
 						_ => println!("Skipped element name"),
 					}
 				}
-				_ => println!("unmarshal_object_perms > skipping node"),
+				_ => (),
 			}
 		}
 		println!("ObjectPermission parsing complete: {:?}", op);
@@ -105,49 +105,49 @@ impl ObjectPermission {
 	}
 
 	pub fn set_allow_read(&mut self, ar: ~str) -> bool {
-		match ar {
-			~"true" => self.allowRead = true,
-			_ => self.allowRead = false,
+		match from_str::<bool>(ar) {
+			Some(b) => self.allowRead = b,
+			None => self.allowRead = false,
 		}
 		self.allowRead
 	}
 
 	pub fn set_allow_create(&mut self, ac: ~str) -> bool {
-		match ac {
-			~"true" => self.allowCreate = true,
-			_ => self.allowCreate = false,
+		match from_str::<bool>(ac) {
+			Some(b) => self.allowCreate = b,
+			None => self.allowCreate = false,
 		}
 		self.allowCreate
 	}
 
 	pub fn set_allow_edit(&mut self, ae: ~str) -> bool {
-		match ae {
-			~"true" => self.allowEdit = true,
-			_ => self.allowEdit = false,
+		match from_str::<bool>(ae) {
+			Some(b) => self.allowEdit = b,
+			None => self.allowEdit = false,
 		}
 		self.allowEdit
 	}
 
 	pub fn set_allow_delete(&mut self, ad: ~str) -> bool {
-		match ad {
-			~"true" => self.allowDelete = true,
-			_ => self.allowDelete = false,
+		match from_str::<bool>(ad) {
+			Some(b) => self.allowDelete = b,
+			None => self.allowDelete = false,
 		}
 		self.allowDelete
 	}
 
 	pub fn set_view_all(&mut self, va: ~str) -> bool {
-		match va {
-			~"true" => self.viewAllRecords = true,
-			_ => self.viewAllRecords = false,
+		match from_str::<bool>(va) {
+			Some(b) => self.viewAllRecords = b,
+			None => self.viewAllRecords = false,
 		}
 		self.viewAllRecords
 	}
 
 	pub fn set_modify_all(&mut self, ma: ~str) -> bool {
-		match ma {
-			~"true" => self.modifyAllRecords = true,
-			_ => self.modifyAllRecords = false,
+		match from_str::<bool>(ma) {
+			Some(b) => self.modifyAllRecords = b,
+			None => self.modifyAllRecords = false,
 		}
 		self.modifyAllRecords
 	}
@@ -172,20 +172,19 @@ impl RecordTypeVisibility {
 		let mut rtv = RecordTypeVisibility::new();
 		for x in e.children.iter() {
 			match *x {
-				xml::Element(ref e) if e.name == ~"recordType" => {
-					rtv.set_record_type(get_element_value(e));
+				xml::Element(ref e) => {
+					match e.name {
+						~"recordType" => { rtv.set_record_type(get_element_value(e)); },
+						~"default" => { rtv.set_default(get_element_value(e)); },
+						~"visible" => { rtv.set_visible(get_element_value(e)); },
+						_ => warn!("Invalid element name"),
+					}
 				},
-				xml::Element(ref e) if e.name == ~"default" => {
-					rtv.set_default(get_element_value(e));
-				},
-				xml::Element(ref e) if e.name == ~"visible" => {
-					rtv.set_visible(get_element_value(e));
-				},
-				_ => println!("Skipping node")
+				_ => (),
 			}
 		}
 		println!("RecordTypeVisibility parsing complete: {:?}", rtv);
-		return rtv;
+		rtv
 	}
 
 	pub fn set_record_type(&mut self, rt: ~str) {
@@ -193,17 +192,17 @@ impl RecordTypeVisibility {
 	}
 
 	pub fn set_default(&mut self, def: ~str) -> bool {
-		match def {
-			~"true" => self.default = true,
-			_ => self.default = false,
+		match from_str::<bool>(def) {
+			Some(b) => self.default = b,
+			None => self.default = false,
 		}
 		self.default
 	}
 
 	pub fn set_visible(&mut self, vis: ~str) -> bool {
-		match vis {
-			~"true" => self.visible = true,
-			_ => self.visible = false,
+		match from_str::<bool>(vis) {
+			Some(b) => self.visible = b,
+			None => self.visible = false,
 		}
 		self.visible
 	}
@@ -282,7 +281,6 @@ fn handle_element(e: &xml::Element) {
 	println!("Element Name: {}", e.name);
 	if e.children.len() > 0 {
 		for x in e.children.iter() {
-			println!("In e.children.iter()");
 			match *x {
 				xml::Element(ref e) if e.name == ~"fieldPermissions" =>
 					println!("{}", get_element_value(e)),
