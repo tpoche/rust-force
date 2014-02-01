@@ -14,6 +14,25 @@ impl FieldPermission {
 		FieldPermission { field: ~"", readable: false, editable: false }
 	}
 
+	pub fn from_xml(e: &xml::Element) -> FieldPermission {
+		let mut fp = FieldPermission::new();
+		for x in e.children.iter() {
+			match *x {
+				xml::Element(ref e) => {
+					match e.name {
+						~"field" => { fp.set_field(get_element_value(e)); },
+						~"readable" => { fp.set_readable(get_element_value(e)); },
+						~"editable" => { fp.set_editable(get_element_value(e));	},
+						_ => println!("Skipping unknown element name"),
+					}
+				}, 
+				_ => println!("Skipping node")
+			}
+		}
+		println!("FieldPerm parsing complete: {:?}", fp);
+		fp
+	}
+
 	pub fn set_field(&mut self, f: ~str) {
 		self.field = f
 	}
@@ -56,6 +75,29 @@ impl ObjectPermission {
 			viewAllRecords: false,
 			modifyAllRecords: false
 		}
+	}
+
+	pub fn from_xml(e: &xml::Element) -> ObjectPermission {
+		let mut op = ObjectPermission::new();
+		for x in e.children.iter() {
+			match *x {
+				xml::Element(ref e) => {
+					match e.name {
+						~"object" => { op.set_object(get_element_value(e)); },
+						~"allowCreate" => { op.set_allow_create(get_element_value(e)); },
+						~"allowRead" => { op.set_allow_read(get_element_value(e)); },
+						~"allowEdit" => { op.set_allow_edit(get_element_value(e)); },
+						~"allowDelete" => {	op.set_allow_delete(get_element_value(e)); },
+						~"viewAllRecords" => { op.set_view_all(get_element_value(e)); },
+						~"modifyAllRecords" => { op.set_modify_all(get_element_value(e)); },
+						_ => println!("Skipped element name"),
+					}
+				}
+				_ => println!("unmarshal_object_perms > skipping node"),
+			}
+		}
+		println!("ObjectPermission parsing complete: {:?}", op);
+		op
 	}
 
 	pub fn set_object(&mut self, o: ~str) {
@@ -213,8 +255,8 @@ fn handle_root(e: &xml::Element) {
 		match *x {
 			xml::Element(ref e) => {
 				match e.name {
-					~"fieldPermissions" => fperms.push(unmarshal_field_perms(e)),
-					~"objectPermissions" => operms.push(unmarshal_object_perms(e)),
+					~"fieldPermissions" => fperms.push(FieldPermission::from_xml(e)),
+					~"objectPermissions" => operms.push(ObjectPermission::from_xml(e)),
 					~"recordTypeVisibilities" => rtvis.push(RecordTypeVisibility::from_xml(e)),
 					_ => handle_element(e),
 				}
@@ -253,49 +295,6 @@ fn handle_element(e: &xml::Element) {
 			}
 		}
 	}
-}
-
-fn unmarshal_field_perms(e: &xml::Element) -> FieldPermission {
-	let mut fp = FieldPermission::new();
-	for x in e.children.iter() {
-		match *x {
-			xml::Element(ref e) if e.name == ~"field" => {
-				fp.set_field(get_element_value(e));
-			},
-			xml::Element(ref e) if e.name == ~"readable" => {
-				fp.set_readable(get_element_value(e));
-			},
-			xml::Element(ref e) if e.name == ~"editable" => {
-				fp.set_editable(get_element_value(e));
-			},
-			_ => println!("Skipping node")
-		}
-	}
-	println!("FieldPerm parsing complete: {:?}", fp);
-	return fp;
-}
-
-fn unmarshal_object_perms(e: &xml::Element) -> ObjectPermission {
-	let mut op = ObjectPermission::new();
-	for x in e.children.iter() {
-		match *x {
-			xml::Element(ref e) => {
-				match e.name {
-					~"object" => { op.set_object(get_element_value(e)); },
-					~"allowCreate" => { op.set_allow_create(get_element_value(e)); },
-					~"allowRead" => { op.set_allow_read(get_element_value(e)); },
-					~"allowEdit" => { op.set_allow_edit(get_element_value(e)); },
-					~"allowDelete" => {	op.set_allow_delete(get_element_value(e)); },
-					~"viewAllRecords" => { op.set_view_all(get_element_value(e)); },
-					~"modifyAllRecords" => { op.set_modify_all(get_element_value(e)); },
-					_ => println!("Skipped element name"),
-				}
-			}
-			_ => println!("unmarshal_object_perms > skipping node"),
-		}
-	}
-	println!("ObjectPermission parsing complete: {:?}", op);
-	op
 }
 
 fn get_element_value(e: &xml::Element) -> ~str {
