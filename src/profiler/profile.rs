@@ -1,6 +1,8 @@
-/// Contains profile metadata object definitions
+/// Contains profile metadata object definitions to support parsing
+/// responses from the Salesforce Metadata API
 extern mod xml;
 
+#[deriving(Clone, Eq)]
 pub struct Profile {
 	name: ~str,
 	fieldPermissions: ~[FieldPermission],
@@ -9,6 +11,100 @@ pub struct Profile {
 	userLicense: ~str,
 }
 
+impl Profile {
+	pub fn new() -> Profile {
+		Profile {
+			name: ~"",
+			fieldPermissions: ~[],
+			objectPermissions: ~[],
+			recordTypeVisibilities: ~[],
+			userLicense: ~"",
+		}
+	}
+
+	pub fn set_user_license(&mut self, lic: &str) {
+		if lic.len() > 0 {
+			self.userLicense = lic.into_owned();
+		}
+
+	}
+
+	pub fn push_field_perms(&mut self, fps: ~[FieldPermission]) {
+		if fps.len() > 0 {
+			let mut count = 0;
+			for fp in fps.iter() {
+				self.fieldPermissions.push(fp.clone());
+				count += 1;
+			}
+			println!("{} field permissions added to profile", count);
+		}
+	}
+
+	pub fn push_object_perms(&mut self, ops: ~[ObjectPermission]) {
+		if ops.len() > 0 {
+			let mut count = 0;
+			for op in ops.iter() {
+				self.objectPermissions.push(op.clone());
+				count += 1;
+			}
+			println!("{} object permissions added to profile", count);
+		}
+	}
+
+	pub fn push_record_types(&mut self, rtvs: ~[RecordTypeVisibility]) {
+		if rtvs.len() > 0 {
+			let mut count = 0;
+			for rtv in rtvs.iter() {
+				self.recordTypeVisibilities.push(rtv.clone());
+				count += 1;
+			}
+			println!("{} record type visibilities added to profile", count);
+		}
+	}
+}
+
+impl ToStr for Profile {
+	fn to_str(&self) -> ~str {
+		let mut srepr = ~"Profile: \n";
+		if self.name.len() > 0 {
+			srepr.push_str(format!("Name: {}\n", self.name));
+		}
+
+		if self.userLicense.len() > 0 {
+			srepr.push_str(format!("UserLicense: {}\n", self.userLicense));
+		}
+
+		if self.fieldPermissions.len() > 0 {
+			for fp in self.fieldPermissions.iter() {
+				srepr.push_str("FieldPermission: \n");
+				srepr.push_str(format!("\tField: {}\n", fp.field));
+				srepr.push_str(format!("\tReadable: {}\n", fp.readable.to_str()));
+				srepr.push_str(format!("\tEditable: {}\n", fp.editable.to_str()));
+			}
+		}
+
+		for op in self.objectPermissions.iter() {
+			srepr.push_str("ObjectPermission: \n");
+			srepr.push_str(format!("\tObject: {}\n", op.object));
+			srepr.push_str(format!("\tAllowRead: {}\n", op.allowRead));
+			srepr.push_str(format!("\tAllowCreate: {}\n", op.allowCreate));
+			srepr.push_str(format!("\tAllowEdit: {}\n", op.allowEdit));
+			srepr.push_str(format!("\tAllowDelete: {}\n", op.allowDelete));
+			srepr.push_str(format!("\tViewAllRecords: {}\n", op.viewAllRecords));
+			srepr.push_str(format!("\tModifyAllRecords: {}\n", op.modifyAllRecords));
+		}
+
+		for rt in self.recordTypeVisibilities.iter() {
+			srepr.push_str("RecordTypeVisibility: \n");
+			srepr.push_str(format!("\tRecordType: {}\n", rt.recordType));
+			srepr.push_str(format!("\tDefault: {}\n", rt.default));
+			srepr.push_str(format!("\tVisible: {}\n", rt.visible));
+		}
+		srepr
+	}
+}
+
+#[deriving(Clone,Eq)]
 pub struct FieldPermission {
 	field : ~str,
 	readable: bool,
@@ -17,7 +113,11 @@ pub struct FieldPermission {
 
 impl FieldPermission {
 	pub fn new() -> FieldPermission {
-		FieldPermission { field: ~"", readable: false, editable: false }
+		FieldPermission { 
+			field: ~"", 
+			readable: false, 
+			editable: false 
+		}
 	}
 
 	pub fn from_xml(e: &xml::Element) -> FieldPermission {
@@ -61,6 +161,7 @@ impl FieldPermission {
 }
 
 /// ObjectPermission definition
+#[deriving(Clone,Eq)]
 pub struct ObjectPermission {
 	object: ~str,
 	allowRead: bool,
@@ -161,6 +262,7 @@ impl ObjectPermission {
 }
 
 /// RecordTypeVisibility definition
+#[deriving(Clone,Eq)]
 pub struct RecordTypeVisibility {
 	recordType: ~str,
 	default: bool,

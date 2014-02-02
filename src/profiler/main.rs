@@ -47,6 +47,7 @@ fn main() {
 
 fn handle_root(e: &xml::Element) {
 	println!("Root found: {}", e.name);
+	let mut p = Profile::new();
 	let mut fperms = ~[];
 	let mut operms = ~[];
 	let mut rtvis  = ~[];
@@ -57,6 +58,7 @@ fn handle_root(e: &xml::Element) {
 					~"fieldPermissions" => fperms.push(FieldPermission::from_xml(e)),
 					~"objectPermissions" => operms.push(ObjectPermission::from_xml(e)),
 					~"recordTypeVisibilities" => rtvis.push(RecordTypeVisibility::from_xml(e)),
+					~"userLicense" => p.set_user_license(get_element_value(e)),
 					_ => handle_element(e),
 				}
 			},
@@ -66,15 +68,20 @@ fn handle_root(e: &xml::Element) {
 
 	if !fperms.is_empty() {
 		println!("Field Perm Total: {}", fperms.len());
+		p.push_field_perms(fperms);
 	}
 
 	if !operms.is_empty() {
 		println!("Object Perm Total: {}", operms.len());
+		p.push_object_perms(operms);
 	}
 
 	if !rtvis.is_empty() {
 		println!("Record Type Visibility Total: {}", rtvis.len());
+		p.push_record_types(rtvis);
 	}
+
+	println!("{}", p.to_str());
 }
 
 fn handle_element(e: &xml::Element) {
