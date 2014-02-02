@@ -135,7 +135,6 @@ impl FieldPermission {
 				_ => (),
 			}
 		}
-		println!("FieldPerm parsing complete: {:?}", fp);
 		fp
 	}
 
@@ -204,7 +203,6 @@ impl ObjectPermission {
 				_ => (),
 			}
 		}
-		println!("ObjectPermission parsing complete: {:?}", op);
 		op
 	}
 
@@ -293,7 +291,6 @@ impl RecordTypeVisibility {
 				_ => (),
 			}
 		}
-		println!("RecordTypeVisibility parsing complete: {:?}", rtv);
 		rtv
 	}
 

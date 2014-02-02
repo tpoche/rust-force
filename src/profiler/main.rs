@@ -62,7 +62,7 @@ fn handle_root(e: &xml::Element) {
 					_ => handle_element(e),
 				}
 			},
-			_ => println!("handle_root received other type!")
+			_ => warn!("handle_root received unknown XML!")
 		}
 	}
 
@@ -86,18 +86,14 @@ fn handle_root(e: &xml::Element) {
 
 fn handle_element(e: &xml::Element) {
 	println!("Element Name: {}", e.name);
-	if e.children.len() > 0 {
-		for x in e.children.iter() {
-			match *x {
-				xml::Element(ref e) if e.name == ~"fieldPermissions" =>
-					println!("{}", get_element_value(e)),
-				xml::Element(ref e) => handle_element(e),
-				xml::CharacterNode(ref cn) => println!("Charnode: {}", *cn),
-				xml::CDATANode(ref cd) => println!("CDATAnode: {}", *cd),
-				xml::CommentNode(ref co) => println!("Comment: {}", *co),
-				//println!("Child Element: {}", handle_element(e)),
-				_ => println!("No more elements found")
-			}
+	for x in e.children.iter() {
+		match *x {
+			xml::Element(ref e) => handle_element(e),
+			xml::CharacterNode(ref cn) => println!("Charnode: {}", *cn),
+			xml::CDATANode(ref cd) => println!("CDATAnode: {}", *cd),
+			xml::CommentNode(ref co) => println!("Comment: {}", *co),
+			//println!("Child Element: {}", handle_element(e)),
+			_ => println!("No more elements found")
 		}
 	}
 }
